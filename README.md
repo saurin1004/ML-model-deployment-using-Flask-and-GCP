@@ -1,4 +1,4 @@
-# ML-model-deployment-usinfg-Flask-and-GCP
+# ML-model-deployment-using-Flask-and-GCP
 Title says it all. For step-by-step approach, please continue reading.
 # ML Model Deployment Tutorial
 
