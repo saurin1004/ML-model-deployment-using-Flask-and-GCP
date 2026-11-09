@@ -1,72 +1,53 @@
-# ML-model-deployment-using-Flask-and-GCP
-Title says it all. For step-by-step approach, please continue reading.
-# ML Model Deployment Tutorial
+# ML Model Deployment with Flask and Google Cloud
 
-# Overview
+A small end-to-end example of taking a scikit-learn model from training to a hosted web service: a salary-prediction model served through a **Flask** app and deployed on **Google App Engine** (flexible environment) with **gunicorn**.
 
-This is a simple project to elaborate how to deploy a Machine Learning model using Flask API
+## How it works
 
-### **Prerequisites**
+1. `model.py` trains a linear regression on `hiring.csv` (years of experience, test score, interview score → salary) and saves it to `model.pkl`.
+2. `main.py` loads the model and serves:
+   - `GET /`: a form (`templates/index.html`) for the three inputs
+   - `POST /predict`: runs the model and renders the predicted salary
+3. `app.yaml` configures App Engine to run the app with `gunicorn -b :$PORT main:app`.
 
-You must have Scikit Learn, Pandas (for Machine Leraning Model) and Flask (for API) installed.
+## Run locally
 
-### **Project Structure**
+```bash
+git clone https://github.com/saurin1004/ML-model-deployment-using-Flask-and-GCP.git
+cd ML-model-deployment-using-Flask-and-GCP
 
-This project has four major parts :
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
 
-1. model.py - This contains code for our Machine Learning model to predict employee salaries based on training data in 'hiring.csv' file.
-2. app.py - This contains Flask APIs that receives employee details through GUI or API calls, computes the predicted value based on our model and returns it.
-3. template - This folder contains the HTML template (index.html) to allow user to enter employee detail and displays the predicted employee salary.
-4. static - This folder contains the css folder with style.css file which has the styling required for out index.html file.
+python model.py      # (re)train and save model.pkl
+python main.py       # http://127.0.0.1:5000
+```
 
-### **Running the project**
+Enter the three values and click **Predict**.
 
-1. Ensure that you are in the project home directory. Create the machine learning model by running below command from command prompt -
-    
-    `python model.py`
-    
-    This would create a serialized version of our model into a file model.pkl
-    
-2. Run app.py using below command to start Flask API
-    
-    `python app.py`
-    
-    By default, flask will run on port 5000.
-    
-3. Navigate to URL [http://127.0.0.1:5000/](http://127.0.0.1:5000/) (or) [http://localhost:5000](http://localhost:5000/)
-    
-    You should be able to view the homepage.
-    
-    Enter valid numerical values in all 3 input boxes and hit Predict.
-    
-    If everything goes well, you should be able to see the predcited salary vaule on the HTML page! check the output here: [http://127.0.0.1:5000/predict](http://127.0.0.1:5000/predict)
-    
-    ---
-    
-    ## Deployment on GCP
-    
-    1. Rename ‘app.py’ to ‘main.py’
-    2. Create new ‘app.yaml’ file (copy yaml file from here “[https://github.com/saurin1004/ML-model-deployment-using-Flask-and-GCP/blob/main/app.yaml](https://github.com/saurin1004/ML-model-deployment-using-Flask-and-GCP/blob/main/app.yaml)”, this has default yaml file format for python)
-        
-        ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/a5824ad7-d846-46e9-96c0-a50afd445658/Untitled.png)
-        
-    3. Open GCP
-    4. Create new project
-    5. Open terminal (icon with “Activate Cloud Shell” label, which is right next to search bar)
-        
-        ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/6cd350db-6b97-48e8-a1ae-943df338ab81/Untitled.png)
-        
-    6. type “git clone [https://github.com/saurin1004/ML-model-deployment-using-Flask-and-GCP](https://github.com/saurin1004/ML-model-deployment-usinfg-Flask-and-GCP)” (I have already made a repository for you to clone, you can use this, or use your own repository. I hope you are aware of how to create a new github repo and upload your files from local storage to it, if no, then don’t worry I will explain it as many times needed)
-        
-        ![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/b6475642-bcbc-411c-b1d0-47d2438b7408/Untitled.png)
-        
-    7. Next, click on “Open Editor” button on your Terminal’s bar(with a pencil logo).
-        
-        Here you can see the repository you just cloned to your project.
-        
-    8. Go back to Terminal
-    9. change your directory to the cloned directory, where your .yaml file is.
-    10. Now just type “gcloud app deploy”… voila
-    11. If you have properly configured your yaml and [main.py](http://main.py) file, thn there should be no problem, you maybe asked to enter server location just put it to asia-south-something and you are fine to go.
-    12. This works basically for almost all ML models, for more complex problems you will have to dive deeper.
-    13. Please note: I had to use github coz my mac was having issues on using gcloud SDK, if you have linux or windows, there is another way you can upload files (directly from local storage to gcp). Please explore that option as well.
+## Deploy to Google App Engine
+
+Requires the [Google Cloud CLI](https://cloud.google.com/sdk/docs/install) and a GCP project with billing enabled. Cloud Shell works too.
+
+```bash
+gcloud config set project <your-project-id>
+gcloud app deploy          # uses app.yaml
+gcloud app browse          # open the deployed app
+```
+
+`app.yaml` pins a single small instance (1 vCPU, 0.5 GB) to keep test costs low. The flexible environment still bills while running, so stop the version when you're done with `gcloud app versions stop <version>`.
+
+## Project structure
+
+| File | Purpose |
+| --- | --- |
+| `model.py` | Trains the regression model and writes `model.pkl` |
+| `main.py` | Flask app (form + `/predict`) |
+| `templates/index.html`, `static/css/style.css` | Web UI |
+| `hiring.csv` | Training data |
+| `app.yaml` | App Engine configuration |
+| `requirements.txt` | Python dependencies |
+
+## Tech stack
+
+Python · scikit-learn · pandas · NumPy · Flask · gunicorn · Google App Engine
